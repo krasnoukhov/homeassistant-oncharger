@@ -34,7 +34,12 @@ class Oncharger:
 
     def get_status(self) -> dict[str, Any]:
         """Get status data for Oncharger component."""
-        return self._get_request(path="status")
+        data = self._get_request(path="status")
+
+        if data.get("isOnline") is False:
+            raise ConnectionError("Device is offline")
+
+        return data
 
     def set_max_charging_current(self, charging_current: float) -> None:
         """Set Oncharger max charging current."""
