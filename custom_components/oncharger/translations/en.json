@@ -1,0 +1,71 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "connection_type": "Select connection type"
+        },
+        "description": "Select connection type. Local requires your Oncharger to be on your home Wi-Fi"
+      },
+      "local": {
+        "data": {
+          "ip_address": "IP address",
+          "username": "Username",
+          "password": "Password"
+        },
+        "description": "Login and password are set on the System tab of the Oncharger device"
+      },
+      "cloud": {
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "description": "Login and password are set on the Service tab of the Oncharger device"
+      }
+    },
+    "error": {
+      "unknown": "Unknown error",
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication"
+    },
+    "abort": {
+      "already_configured": "Device is already configured",
+      "invalid_auth": "Invalid authentication"
+    }
+  },
+  "entity": {
+    "number": {
+      "maximum_charging_current": {
+        "name": "Maximum current"
+      }
+    },
+    "sensor": {
+      "state": {
+        "name": "State"
+      },
+      "current": {
+        "name": "Current"
+      },
+      "session_energy": {
+        "name": "Session energy"
+      },
+      "device_temperature": {
+        "name": "Device temperature"
+      },
+      "session_elapsed": {
+        "name": "Session time elapsed"
+      },
+      "voltage": {
+        "name": "Voltage"
+      },
+      "total_energy": {
+        "name": "Total energy"
+      }
+    },
+    "lock": {
+      "lock": {
+        "name": "Lock"
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "domain": "oncharger",
+  "name": "Oncharger",
+  "codeowners": ["@krasnoukhov"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/krasnoukhov/homeassistant-oncharger",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "requirements": [],
+  "version": "1.0.0"
+}
