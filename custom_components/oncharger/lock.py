@@ -31,7 +31,7 @@ async def async_setup_entry(
 
     async_add_entities(
         [
-            OnchargerLock(coordinator, entry, description)
+            OnchargerLock(hass, coordinator, entry, description)
             for ent in coordinator.data
             if (description := ENTITY_DESCRIPTIONS.get(ent))
         ]

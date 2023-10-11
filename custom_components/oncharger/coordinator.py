@@ -90,6 +90,18 @@ class OnchargerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self.hass.async_add_executor_job(self._set_lock_unlock, lock)
         await self.async_request_refresh()
 
+    def _set_boost_config(self, *args) -> None:
+        """Set Oncharger boost config."""
+        try:
+            self._oncharger.set_boost_config(*args)
+        except Forbidden as forbidden_error:
+            raise InvalidAuth from forbidden_error
+
+    async def async_set_boost_config(self, *args) -> None:
+        """Set Oncharger boost config."""
+        await self.hass.async_add_executor_job(self._set_boost_config, *args)
+        await self.async_request_refresh()
+
 
 class InvalidAuth(HomeAssistantError):
     """Error to indicate there is invalid auth."""
