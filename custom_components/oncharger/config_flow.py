@@ -7,6 +7,7 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant import config_entries
+from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.const import (
@@ -21,6 +22,7 @@ from .const import (
     ATTR_ENTITY,
     CLOUD,
     CONNECTION_TYPE,
+    CHARGER_NAME_KEY,
     DEVICE_NAME,
     DOMAIN,
     IP_ADDRESS,
@@ -67,12 +69,7 @@ LOCAL_SCHEMA = vol.Schema(
         **BOOST_FIELDS,
     }
 )
-CLOUD_SCHEMA = vol.Schema(
-    {
-        **LOGIN_FIELDS,
-        **BOOST_FIELDS,  # TODO: remove
-    }
-)
+CLOUD_SCHEMA = vol.Schema(LOGIN_FIELDS)
 OPTIONS_SCHEMA = vol.Schema(BOOST_FIELDS)
 
 
@@ -84,9 +81,9 @@ async def validate_input(hass: HomeAssistant, data: dict) -> dict[str, Any]:
 
     oncharger = Oncharger(data)
     coordinator = OnchargerCoordinator(oncharger, hass)
-    await coordinator.async_validate_input()
+    coordinator_data = await coordinator.async_validate_input()
 
-    return {"title": data[DEVICE_NAME]}
+    return {"title": data[DEVICE_NAME], "unique_id": coordinator_data[CHARGER_NAME_KEY]}
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -114,9 +111,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
 
         self._device_name = user_input[DEVICE_NAME]
-
-        await self.async_set_unique_id(user_input[DEVICE_NAME])
-        self._abort_if_unique_id_configured()
 
         if user_input[CONNECTION_TYPE] == LOCAL:
             return await self.async_step_local()
@@ -151,6 +145,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             info = await validate_input(self.hass, user_input)
             options = dict((str(d), user_input.pop(d, None)) for d in BOOST_FIELDS)
 
+            await self.async_set_unique_id(f"{info['unique_id']}-{step_id}")
+            self._abort_if_unique_id_configured()
+
             return self.async_create_entry(
                 title=info["title"], data=user_input, options=options
             )
@@ -158,6 +155,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors["base"] = "cannot_connect"
         except InvalidAuth:
             errors["base"] = "invalid_auth"
+        except AbortFlow as abort_flow_error:
+            errors["base"] = abort_flow_error.reason
         except Exception as exception_error:  # pylint: disable=broad-except
             _LOGGER.exception(f"Unexpected exception {exception_error}")
             errors["base"] = "unknown"
@@ -185,11 +184,11 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         )
 
         if user_input is None:
-            # TODO: form for cloud
             return self.async_show_form(
                 step_id="init",
-                data_schema=data_schema,
+                data_schema=data_schema
+                if self.config_entry.data.get(IP_ADDRESS)
+                else None,
             )
 
-        # TODO: reload state for switch
         return self.async_create_entry(title="", data=user_input)

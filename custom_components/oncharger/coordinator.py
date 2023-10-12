@@ -35,13 +35,13 @@ class OnchargerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _validate(self) -> None:
         """Validate using Oncharger API."""
         try:
-            self._oncharger.get_config()
+            return self._oncharger.get_config()
         except Forbidden as forbidden_error:
             raise InvalidAuth from forbidden_error
 
     async def async_validate_input(self) -> None:
         """Get new sensor data for Oncharger component."""
-        await self.hass.async_add_executor_job(self._validate)
+        return await self.hass.async_add_executor_job(self._validate)
 
     def _get_data(self) -> dict[str, Any]:
         """Get new sensor data for Oncharger component."""
