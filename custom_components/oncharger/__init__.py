@@ -1,6 +1,8 @@
 """The Oncharger integration."""
 from __future__ import annotations
 
+import logging
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -10,11 +12,22 @@ from .oncharger import Oncharger
 from .coordinator import InvalidAuth, OnchargerCoordinator
 from .const import DOMAIN
 
-PLATFORMS = [Platform.SENSOR, Platform.NUMBER, Platform.LOCK]
+PLATFORMS = [Platform.SENSOR, Platform.NUMBER, Platform.LOCK, Platform.SWITCH]
+
+_LOGGER = logging.getLogger(__name__)
+
+
+async def update_listener(hass, entry):
+    """Handle options update."""
+    coordinator: OnchargerCoordinator = hass.data[DOMAIN][entry.entry_id]
+    await coordinator.async_request_refresh()
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Oncharger from a config entry."""
+    _LOGGER.debug(f"Oncharger entry data: {entry.data}")
+    _LOGGER.debug(f"Oncharger entry options: {entry.options}")
+
     oncharger = Oncharger(entry.data)
     coordinator = OnchargerCoordinator(
         oncharger,
@@ -32,6 +45,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    entry.async_on_unload(entry.add_update_listener(update_listener))
 
     return True
 

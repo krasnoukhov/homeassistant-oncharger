@@ -119,7 +119,7 @@ async def async_setup_entry(
 
     async_add_entities(
         [
-            OnchargerSensor(coordinator, entry, description)
+            OnchargerSensor(hass, coordinator, entry, description)
             for ent in coordinator.data
             if (description := ENTITY_DESCRIPTIONS.get(ent))
         ]
@@ -127,7 +127,7 @@ async def async_setup_entry(
 
 
 class OnchargerSensor(OnchargerEntity, SensorEntity):
-    """Representation of the Oncharger portal."""
+    """Representation of the Oncharger sensor."""
 
     entity_description: OnchargerSensorEntityDescription
 

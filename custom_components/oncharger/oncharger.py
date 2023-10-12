@@ -59,6 +59,19 @@ class Oncharger:
                 path="update", query=f"param=loc&value={str(lock).lower()}"
             )
 
+    def set_boost_config(
+        self, conn: int, amp: int, is_total_limit: int, ip: string
+    ) -> None:
+        """Set Oncharger boost config."""
+        if self._ip_address:
+            self._get_request(
+                path="save-pm",
+                query=f"conn={conn}&amp={amp}&isTotalLimit={is_total_limit}&ip={ip}",
+            )
+        else:
+            config = f"{conn}|{amp}|{is_total_limit}|{ip}"
+            self._get_request(path="update", query=f"param=cb_config&value={config}")
+
     @property
     def _api_url(self) -> ParseResult:
         """Get base Oncharger API URL."""

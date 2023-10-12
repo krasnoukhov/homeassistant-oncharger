@@ -3,7 +3,8 @@
     "step": {
       "user": {
         "data": {
-          "connection_type": "Select connection type"
+          "connection_type": "Select connection type",
+          "device_name": "Name for the device in HA"
         },
         "description": "Select connection type. Local requires your Oncharger to be on your home Wi-Fi"
       },
@@ -11,7 +12,13 @@
         "data": {
           "ip_address": "IP address",
           "username": "Username",
-          "password": "Password"
+          "password": "Password",
+          "phase_current_entity": "Optional: entity for phase current",
+          "phase_max_load": "Optional: max load allowed on the phase"
+        },
+        "data_description": {
+          "phase_current_entity": "Select entity that measures phase current outside of charger to enable boost feature",
+          "phase_max_load": "Should match the maximum load the breaker allows, like 32A or 25A"
         },
         "description": "Login and password are set on the System tab of the Oncharger device"
       },
@@ -24,19 +31,34 @@
       }
     },
     "error": {
-      "unknown": "Unknown error",
-      "cannot_connect": "Failed to connect",
-      "invalid_auth": "Invalid authentication"
-    },
-    "abort": {
       "already_configured": "Device is already configured",
-      "invalid_auth": "Invalid authentication"
+      "already_in_progress": "Device configuration is in progress",
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unknown error"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "phase_current_entity": "Optional: entity for phase current",
+          "phase_max_load": "Optional: max load allowed on the phase"
+        },
+        "data_description": {
+          "phase_current_entity": "Select entity that measures phase current outside of charger to enable boost feature",
+          "phase_max_load": "Should match the maximum load the breaker allows, like 32A or 25A"
+        }
+      }
     }
   },
   "entity": {
     "number": {
       "maximum_charging_current": {
         "name": "Maximum current"
+      },
+      "max_phase_current": {
+        "name": "Maximum total phase current"
       }
     },
     "sensor": {
@@ -65,6 +87,11 @@
     "lock": {
       "lock": {
         "name": "Lock"
+      }
+    },
+    "switch": {
+      "boost": {
+        "name": "Boost"
       }
     }
   }

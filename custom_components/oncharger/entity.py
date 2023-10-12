@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -22,6 +23,7 @@ class OnchargerEntity(CoordinatorEntity[OnchargerCoordinator]):
 
     def __init__(
         self,
+        hass: HomeAssistant,
         coordinator: OnchargerCoordinator,
         entry: ConfigEntry,
         description: EntityDescription,
@@ -29,8 +31,11 @@ class OnchargerEntity(CoordinatorEntity[OnchargerCoordinator]):
         """Initialize a Oncharger entity."""
         super().__init__(coordinator)
         self.entity_description = description
-        self._entry = entry
+
+        self._hass = hass
         self._coordinator = coordinator
+        self._entry = entry
+
         self._attr_unique_id = "-".join(
             [
                 coordinator.data[CHARGER_NAME_KEY],

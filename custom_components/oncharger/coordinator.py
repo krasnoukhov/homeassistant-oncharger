@@ -35,13 +35,13 @@ class OnchargerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _validate(self) -> None:
         """Validate using Oncharger API."""
         try:
-            self._oncharger.get_config()
+            return self._oncharger.get_config()
         except Forbidden as forbidden_error:
             raise InvalidAuth from forbidden_error
 
     async def async_validate_input(self) -> None:
         """Get new sensor data for Oncharger component."""
-        await self.hass.async_add_executor_job(self._validate)
+        return await self.hass.async_add_executor_job(self._validate)
 
     def _get_data(self) -> dict[str, Any]:
         """Get new sensor data for Oncharger component."""
@@ -88,6 +88,18 @@ class OnchargerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def async_set_lock_unlock(self, lock: bool) -> None:
         """Set Oncharger to locked or unlocked."""
         await self.hass.async_add_executor_job(self._set_lock_unlock, lock)
+        await self.async_request_refresh()
+
+    def _set_boost_config(self, *args) -> None:
+        """Set Oncharger boost config."""
+        try:
+            self._oncharger.set_boost_config(*args)
+        except Forbidden as forbidden_error:
+            raise InvalidAuth from forbidden_error
+
+    async def async_set_boost_config(self, *args) -> None:
+        """Set Oncharger boost config."""
+        await self.hass.async_add_executor_job(self._set_boost_config, *args)
         await self.async_request_refresh()
 
 
