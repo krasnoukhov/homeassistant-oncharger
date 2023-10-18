@@ -9,17 +9,17 @@ Tested with:
 
 ### Have your charger sensors at a glance
 
-![sensors](https://github.com/krasnoukhov/homeassistant-oncharger/assets/944286/cf51f9e0-54d9-41ae-809e-9439d65de051)
+<img src="https://github.com/krasnoukhov/homeassistant-oncharger/assets/944286/cf51f9e0-54d9-41ae-809e-9439d65de051" alt="sensors" width="400">
 
 ### Charge your car at the maximum power
 * If you have a smart meter that reports current on the phase to a specific entity in HA
 * This entity can be used to have this integration auto-adjust Oncharger current up to a specific threshold
 
-![boost](https://github.com/krasnoukhov/homeassistant-oncharger/assets/944286/a809fe0f-c10d-4d22-a8e2-35469fff9ad9)
+<img src="https://github.com/krasnoukhov/homeassistant-oncharger/assets/944286/a809fe0f-c10d-4d22-a8e2-35469fff9ad9" alt="boost" width="400">
 
 ### Use the UI to set up integration
 
-![setup](https://github.com/krasnoukhov/homeassistant-oncharger/assets/944286/4d152f06-bf6f-4656-90c8-462e814c1494)
+<img src="https://github.com/krasnoukhov/homeassistant-oncharger/assets/944286/4d152f06-bf6f-4656-90c8-462e814c1494" alt="setup" width="400">
 
 ## Installation
 

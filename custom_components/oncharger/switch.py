@@ -107,10 +107,10 @@ class OnchargerSwitch(OnchargerEntity, SwitchEntity):
                 await self._async_trigger_phase_current_changed()
 
         self._entry.async_on_unload(self._entry.add_update_listener(update_listener))
-        await update_listener(self._hass, self._entry)
+        await update_listener(self.hass, self._entry)
 
         async_track_state_change(
-            self._hass,
+            self.hass,
             self.phase_current_entity_id,
             self._async_phase_current_changed,
         )
@@ -119,7 +119,7 @@ class OnchargerSwitch(OnchargerEntity, SwitchEntity):
         await self._async_phase_current_changed(
             self.phase_current_entity_id,
             None,
-            self._hass.states.get(self.phase_current_entity_id),
+            self.hass.states.get(self.phase_current_entity_id),
         )
 
     async def _async_phase_current_changed(self, entity_id, old_state, new_state):
@@ -155,4 +155,4 @@ class OnchargerSwitch(OnchargerEntity, SwitchEntity):
     async def _async_set_charging_current(self, value: float) -> None:
         """Set the charging current."""
         _LOGGER.debug(f"Oncharger boost setting current: {value}")
-        await self._coordinator.async_set_charging_current(value)
+        await self.coordinator.async_set_charging_current(value)

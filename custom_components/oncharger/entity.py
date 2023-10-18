@@ -30,10 +30,9 @@ class OnchargerEntity(CoordinatorEntity[OnchargerCoordinator]):
     ) -> None:
         """Initialize a Oncharger entity."""
         super().__init__(coordinator)
-        self.entity_description = description
 
-        self._hass = hass
-        self._coordinator = coordinator
+        self.hass = hass
+        self.entity_description = description
         self._entry = entry
 
         self._attr_unique_id = "-".join(

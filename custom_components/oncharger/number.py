@@ -61,15 +61,15 @@ class OnchargerNumber(OnchargerEntity, NumberEntity):
     @property
     def native_max_value(self) -> float:
         """Return the maximum available current."""
-        return cast(float, self._coordinator.data[CHARGER_MAX_AVAILABLE_POWER_KEY])
+        return cast(float, self.coordinator.data[CHARGER_MAX_AVAILABLE_POWER_KEY])
 
     @property
     def native_value(self) -> float | None:
         """Return the value of the entity."""
         return cast(
-            float | None, self._coordinator.data[CHARGER_MAX_CHARGING_CURRENT_KEY]
+            float | None, self.coordinator.data[CHARGER_MAX_CHARGING_CURRENT_KEY]
         )
 
     async def async_set_native_value(self, value: float) -> None:
         """Set the value of the entity."""
-        await self._coordinator.async_set_charging_current(value)
+        await self.coordinator.async_set_charging_current(value)
