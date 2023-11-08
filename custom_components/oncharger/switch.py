@@ -109,6 +109,9 @@ class OnchargerSwitch(OnchargerEntity, SwitchEntity):
         self._entry.async_on_unload(self._entry.add_update_listener(update_listener))
         await update_listener(self.hass, self._entry)
 
+        if not self.phase_current_entity_id:
+            return
+
         async_track_state_change(
             self.hass,
             self.phase_current_entity_id,
