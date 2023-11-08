@@ -82,6 +82,9 @@
       },
       "total_energy": {
         "name": "Total energy"
+      },
+      "power": {
+        "name": "Power"
       }
     },
     "lock": {

@@ -20,6 +20,7 @@ from homeassistant.const import (
     UnitOfEnergy,
     UnitOfTime,
     UnitOfElectricPotential,
+    UnitOfPower,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -47,6 +48,8 @@ class OnchargerSensorEntityDescription(SensorEntityDescription):
 
     normalize: Callable[[Any], Any] | None = None
 
+
+POWER_KEY = "power"
 
 ENTITY_DESCRIPTIONS: dict[str, OnchargerSensorEntityDescription] = {
     CHARGER_STATE_KEY: OnchargerSensorEntityDescription(
@@ -110,6 +113,16 @@ ENTITY_DESCRIPTIONS: dict[str, OnchargerSensorEntityDescription] = {
     ),
 }
 
+POWER_DESCRIPTION = OnchargerSensorEntityDescription(
+    key=POWER_KEY,
+    translation_key=POWER_KEY,
+    icon="mdi:ev-plug-type2",
+    device_class=SensorDeviceClass.POWER,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=UnitOfPower.WATT,
+    suggested_display_precision=0,
+)
+
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
@@ -124,6 +137,13 @@ async def async_setup_entry(
             if (description := ENTITY_DESCRIPTIONS.get(ent))
         ]
     )
+    async_add_entities(
+        [
+            OnchargerPowerSensor(hass, coordinator, entry, description)
+            for ent in [POWER_DESCRIPTION]
+            if (description := POWER_DESCRIPTION)
+        ]
+    )
 
 
 class OnchargerSensor(OnchargerEntity, SensorEntity):
@@ -136,3 +156,18 @@ class OnchargerSensor(OnchargerEntity, SensorEntity):
         """Return the state of the sensor."""
         value = self.coordinator.data[self.entity_description.key]
         return cast(StateType, self.entity_description.normalize(value))
+
+
+class OnchargerPowerSensor(OnchargerEntity, SensorEntity):
+    """Representation of the Oncharger power sensor."""
+
+    entity_description: OnchargerSensorEntityDescription
+
+    @property
+    def native_value(self) -> StateType:
+        """Return the state of the sensor."""
+        value = (
+            self.coordinator.data[CHARGER_CURRENT_KEY]
+            * self.coordinator.data[CHARGER_VOLTAGE_KEY]
+        ) / 10000
+        return cast(StateType, value)
