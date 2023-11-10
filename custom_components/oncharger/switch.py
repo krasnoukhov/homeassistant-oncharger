@@ -20,6 +20,7 @@ from homeassistant.util.unit_conversion import ElectricCurrentConverter
 from .const import (
     CHARGER_BOOST_NATIVE_KEY,
     CHARGER_BOOST_TYPE_KEY,
+    CHARGER_MAX_CHARGING_CURRENT_KEY,
     DOMAIN,
     IP_ADDRESS,
     PHASE_CURRENT_ENTITY,
@@ -44,7 +45,7 @@ async def async_setup_entry(
     """Create Oncharger switch entities in HASS."""
     coordinator: OnchargerCoordinator = hass.data[DOMAIN][entry.entry_id]
 
-    """Support boost for local only."""
+    # Support boost for local only
     if entry.data.get(IP_ADDRESS):
         async_add_entities(
             [
@@ -59,15 +60,15 @@ class OnchargerSwitch(OnchargerEntity, SwitchEntity):
     """Representation of a Oncharger switch."""
 
     @property
-    def phase_current_entity_id(self) -> str:
+    def phase_current_entity_id(self) -> str | None:
         """Return the entity id for phase current."""
         return self._entry.options.get(PHASE_CURRENT_ENTITY)
 
     @property
     def available(self) -> bool:
-        """Return the availability of the switch."""
-        """If user didn't set the entity, we are not available."""
-        """If user has native device boosting, we don't want to interfere."""
+        """Return the availability of the switch.
+        If user didn't set the entity, we are not available.
+        If user has native device boosting, we don't want to interfere."""
         return (
             super().available
             and self.phase_current_entity_id
@@ -102,7 +103,7 @@ class OnchargerSwitch(OnchargerEntity, SwitchEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-        async def update_listener(hass, entry):
+        async def update_listener(_hass, _entry):
             if self.available and self.is_on:
                 await self._async_trigger_phase_current_changed()
 
@@ -125,7 +126,7 @@ class OnchargerSwitch(OnchargerEntity, SwitchEntity):
             self.hass.states.get(self.phase_current_entity_id),
         )
 
-    async def _async_phase_current_changed(self, entity_id, old_state, new_state):
+    async def _async_phase_current_changed(self, _entity_id, _old_state, new_state):
         """Handle phase current changes."""
 
         if not self.available or not self.is_on:
@@ -153,7 +154,10 @@ class OnchargerSwitch(OnchargerEntity, SwitchEntity):
             )
 
         available_current = self._entry.options[PHASE_MAX_LOAD] - math.ceil(current)
-        await self._async_set_charging_current(available_current)
+        if available_current != float(
+            self.coordinator.data[CHARGER_MAX_CHARGING_CURRENT_KEY]
+        ):
+            await self._async_set_charging_current(available_current)
 
     async def _async_set_charging_current(self, value: float) -> None:
         """Set the charging current."""
