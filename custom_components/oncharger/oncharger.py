@@ -60,7 +60,7 @@ class Oncharger:
             )
 
     def set_boost_config(
-        self, conn: int, amp: int, is_total_limit: int, ip: string
+        self, conn: int, amp: int, is_total_limit: int, ip: str
     ) -> None:
         """Set Oncharger boost config."""
         if self._ip_address:
