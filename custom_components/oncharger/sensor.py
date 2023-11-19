@@ -51,6 +51,36 @@ class OnchargerSensorEntityDescription(SensorEntityDescription):
 
 POWER_KEY = "power"
 
+SESSION_ENERGY_DESCRIPTION = OnchargerSensorEntityDescription(
+    key=CHARGER_SESSION_ENERGY_KEY,
+    translation_key="session_energy",
+    device_class=SensorDeviceClass.ENERGY,
+    state_class=SensorStateClass.TOTAL,
+    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    suggested_display_precision=2,
+    normalize=lambda value: value / (36 * 100000),
+)
+
+TOTAL_ENERGY_DESCRIPTION = OnchargerSensorEntityDescription(
+    key=CHARGER_TOTAL_ENERGY_KEY,
+    translation_key="total_energy",
+    device_class=SensorDeviceClass.ENERGY,
+    state_class=SensorStateClass.TOTAL_INCREASING,
+    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    suggested_display_precision=2,
+    normalize=lambda value: value / 1000,
+)
+
+POWER_DESCRIPTION = OnchargerSensorEntityDescription(
+    key=POWER_KEY,
+    translation_key=POWER_KEY,
+    icon="mdi:ev-plug-type2",
+    device_class=SensorDeviceClass.POWER,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=UnitOfPower.WATT,
+    suggested_display_precision=0,
+)
+
 ENTITY_DESCRIPTIONS: dict[str, OnchargerSensorEntityDescription] = {
     CHARGER_STATE_KEY: OnchargerSensorEntityDescription(
         key=CHARGER_STATE_KEY,
@@ -67,15 +97,7 @@ ENTITY_DESCRIPTIONS: dict[str, OnchargerSensorEntityDescription] = {
         suggested_display_precision=2,
         normalize=lambda value: value / 1000,
     ),
-    CHARGER_SESSION_ENERGY_KEY: OnchargerSensorEntityDescription(
-        key=CHARGER_SESSION_ENERGY_KEY,
-        translation_key="session_energy",
-        device_class=SensorDeviceClass.ENERGY,
-        state_class=SensorStateClass.TOTAL,
-        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-        suggested_display_precision=2,
-        normalize=lambda value: value / (36 * 100000),
-    ),
+    CHARGER_SESSION_ENERGY_KEY: SESSION_ENERGY_DESCRIPTION,
     CHARGER_DEVICE_TEMPERATURE_KEY: OnchargerSensorEntityDescription(
         key=CHARGER_DEVICE_TEMPERATURE_KEY,
         translation_key="device_temperature",
@@ -102,26 +124,7 @@ ENTITY_DESCRIPTIONS: dict[str, OnchargerSensorEntityDescription] = {
         suggested_display_precision=2,
         normalize=lambda value: value / 10,
     ),
-    CHARGER_TOTAL_ENERGY_KEY: OnchargerSensorEntityDescription(
-        key=CHARGER_TOTAL_ENERGY_KEY,
-        translation_key="total_energy",
-        device_class=SensorDeviceClass.ENERGY,
-        state_class=SensorStateClass.TOTAL_INCREASING,
-        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-        suggested_display_precision=2,
-        normalize=lambda value: value / 1000,
-    ),
 }
-
-POWER_DESCRIPTION = OnchargerSensorEntityDescription(
-    key=POWER_KEY,
-    translation_key=POWER_KEY,
-    icon="mdi:ev-plug-type2",
-    device_class=SensorDeviceClass.POWER,
-    state_class=SensorStateClass.MEASUREMENT,
-    native_unit_of_measurement=UnitOfPower.WATT,
-    suggested_display_precision=0,
-)
 
 
 async def async_setup_entry(
@@ -138,11 +141,10 @@ async def async_setup_entry(
         ]
     )
     async_add_entities(
-        [
-            OnchargerPowerSensor(hass, coordinator, entry, description)
-            for ent in [POWER_DESCRIPTION]
-            if (description := POWER_DESCRIPTION)
-        ]
+        [OnchargerTotalEnergySensor(hass, coordinator, entry, TOTAL_ENERGY_DESCRIPTION)]
+    )
+    async_add_entities(
+        [OnchargerPowerSensor(hass, coordinator, entry, POWER_DESCRIPTION)]
     )
 
 
@@ -158,10 +160,23 @@ class OnchargerSensor(OnchargerEntity, SensorEntity):
         return cast(StateType, self.entity_description.normalize(value))
 
 
-class OnchargerPowerSensor(OnchargerEntity, SensorEntity):
-    """Representation of the Oncharger power sensor."""
+class OnchargerTotalEnergySensor(OnchargerSensor):
+    """Representation of the Oncharger total energy sensor."""
 
-    entity_description: OnchargerSensorEntityDescription
+    @property
+    def native_value(self) -> StateType:
+        """Return the state of the sensor."""
+        value = self.entity_description.normalize(
+            self.coordinator.data[self.entity_description.key]
+        )
+        session_energy = SESSION_ENERGY_DESCRIPTION.normalize(
+            self.coordinator.data[SESSION_ENERGY_DESCRIPTION.key]
+        )
+        return cast(StateType, value) + cast(StateType, session_energy)
+
+
+class OnchargerPowerSensor(OnchargerSensor):
+    """Representation of the Oncharger power sensor."""
 
     @property
     def native_value(self) -> StateType:
