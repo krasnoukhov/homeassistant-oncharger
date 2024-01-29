@@ -1,6 +1,7 @@
 """Home Assistant component for accessing the Oncharger API.
 
 The lock component creates a lock entity."""
+
 from __future__ import annotations
 
 from homeassistant.components.lock import LockEntity, LockEntityDescription

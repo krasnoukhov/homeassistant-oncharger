@@ -1,6 +1,7 @@
 """Home Assistant component for accessing the Oncharger API.
 
 The switch component creates a switch entity."""
+
 from __future__ import annotations
 import logging
 import math

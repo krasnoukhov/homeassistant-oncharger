@@ -1,4 +1,5 @@
 """The Oncharger integration."""
+
 from __future__ import annotations
 
 import logging
@@ -25,9 +26,6 @@ async def update_listener(hass, entry):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Oncharger from a config entry."""
-    _LOGGER.debug(f"Oncharger entry data: {entry.data}")
-    _LOGGER.debug(f"Oncharger entry options: {entry.options}")
-
     oncharger = Oncharger(entry.data)
     coordinator = OnchargerCoordinator(
         oncharger,
