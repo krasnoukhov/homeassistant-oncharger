@@ -1,4 +1,5 @@
 """Constants for the Oncharger integration."""
+
 from enum import StrEnum
 from homeassistant.const import CONF_IP_ADDRESS
 

@@ -2,6 +2,7 @@
 
 The sensor component creates multipe sensors regarding Oncharger status.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

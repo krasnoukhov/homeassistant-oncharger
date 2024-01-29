@@ -1,4 +1,5 @@
 """Config flow for Oncharger integration."""
+
 from __future__ import annotations
 
 import logging
@@ -178,7 +179,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
         """Manage the options."""
-        _LOGGER.debug(f"Options flow launched: {self.config_entry.options}")
         data_schema = self.add_suggested_values_to_schema(
             OPTIONS_SCHEMA, self.config_entry.options
         )
@@ -186,9 +186,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is None:
             return self.async_show_form(
                 step_id="init",
-                data_schema=data_schema
-                if self.config_entry.data.get(IP_ADDRESS)
-                else None,
+                data_schema=(
+                    data_schema if self.config_entry.data.get(IP_ADDRESS) else None
+                ),
             )
 
         return self.async_create_entry(title="", data=user_input)
