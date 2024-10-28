@@ -54,6 +54,9 @@ class OnchargerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # NOTE: cloud is amp, local is amp1
             if data.get("amp") is None:
                 data["amp"] = data["amp1"]
+            # NOTE: 3 phase for some reason does not have volt1 but have volt
+            if data.get("volt1") is None:
+                data["volt1"] = data["volt"]
 
             return data
         except Forbidden as forbidden_error:
