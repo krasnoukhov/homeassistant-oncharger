@@ -28,7 +28,6 @@ from .const import (
     PHASE_CURRENT_ENTITY,
     PHASE_MAX_LOAD_MIN,
     PHASE_MAX_LOAD,
-    SINGLE_PHASE,
 )
 from .coordinator import OnchargerCoordinator
 from .entity import OnchargerEntity
@@ -76,7 +75,6 @@ class OnchargerSwitch(OnchargerEntity, SwitchEntity):
             super().available
             and self.phase_current_entity_id
             and self.coordinator.data[CHARGER_BOOST_NATIVE_KEY] == 0
-            and self._entry.data[DEVICE_TYPE] == SINGLE_PHASE
         )
 
     @property

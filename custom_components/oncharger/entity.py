@@ -60,3 +60,10 @@ class OnchargerEntity(CoordinatorEntity[OnchargerCoordinator]):
             model="Wi-Fi",
             sw_version=self.coordinator.data[CHARGER_CURRENT_VERSION_KEY],
         )
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        original = super().name
+        key = self.entity_description.key
+        suffix = f" {key[-1]}" if key[-1] in ["1", "2", "3"] else ""
+        return f"{original}{suffix}"
