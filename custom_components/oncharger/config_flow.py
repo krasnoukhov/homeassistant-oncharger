@@ -63,7 +63,7 @@ LOGIN_FIELDS = {
 USER_SCHEMA = vol.Schema(
     {
         vol.Required(CONNECTION_TYPE, default=LOCAL): vol.In((LOCAL, CLOUD)),
-        vol.Required(DEVICE_TYPE, default=SINGLE_PHASE): vol.selector((SINGLE_PHASE, THREE_PHASE)),
+        vol.Required(DEVICE_TYPE, default=SINGLE_PHASE): vol.In((SINGLE_PHASE, THREE_PHASE)),
         vol.Required(DEVICE_NAME, default=DOMAIN.capitalize()): cv.string,
     }
 )
