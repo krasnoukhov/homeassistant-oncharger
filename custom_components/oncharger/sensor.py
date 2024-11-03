@@ -47,11 +47,13 @@ from .entity import OnchargerEntity
 POWER_KEY = "power"
 TOTAL_POWER_KEY = "total_power"
 
+
 @dataclass
 class OnchargerSensorEntityDescription(SensorEntityDescription):
     """Describes Oncharger sensor entity."""
 
     normalize: Callable[[Any], Any] | None = None
+
 
 def phase_descriptions(index="") -> dict[str, SensorEntityDescription]:
     """Generate entity descriptions for a given phase"""
@@ -76,17 +78,19 @@ def phase_descriptions(index="") -> dict[str, SensorEntityDescription]:
         ),
     }
 
+
 def phase_power_description(index="") -> SensorEntityDescription:
     """Generate power entity descriptions for a given phase"""
     return OnchargerSensorEntityDescription(
-            key=f"{POWER_KEY}{index}",
-            translation_key=POWER_KEY,
-            icon="mdi:ev-plug-type2",
-            device_class=SensorDeviceClass.POWER,
-            state_class=SensorStateClass.MEASUREMENT,
-            native_unit_of_measurement=UnitOfPower.WATT,
-            suggested_display_precision=0,
-        )
+        key=f"{POWER_KEY}{index}",
+        translation_key=POWER_KEY,
+        icon="mdi:ev-plug-type2",
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        suggested_display_precision=0,
+    )
+
 
 SESSION_ENERGY_DESCRIPTION = OnchargerSensorEntityDescription(
     key=CHARGER_SESSION_ENERGY_KEY,
@@ -155,6 +159,7 @@ ENTITY_DESCRIPTIONS_3P: dict[str, OnchargerSensorEntityDescription] = {
     **phase_descriptions("3"),
 }
 
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
@@ -183,12 +188,18 @@ async def async_setup_entry(
         )
         async_add_entities(
             [
-                OnchargerPowerSensor(hass, coordinator, entry, phase_power_description(phase))
+                OnchargerPowerSensor(
+                    hass, coordinator, entry, phase_power_description(phase)
+                )
                 for phase in ["1", "2", "3"]
             ]
         )
         async_add_entities(
-            [OnchargerTotalPowerSensor(hass, coordinator, entry, TOTAL_POWER_DESCRIPTION)]
+            [
+                OnchargerTotalPowerSensor(
+                    hass, coordinator, entry, TOTAL_POWER_DESCRIPTION
+                )
+            ]
         )
     else:
         async_add_entities(
@@ -199,7 +210,11 @@ async def async_setup_entry(
             ]
         )
         async_add_entities(
-            [OnchargerPowerSensor(hass, coordinator, entry, phase_power_description(""))]
+            [
+                OnchargerPowerSensor(
+                    hass, coordinator, entry, phase_power_description("")
+                )
+            ]
         )
 
 
@@ -238,11 +253,16 @@ class OnchargerPowerSensor(OnchargerSensor):
         """Return the state of the sensor."""
         key = self.entity_description.key
         suffix = f"{key[-1]}" if key[-1] in ["1", "2", "3"] else ""
-        value = round((
-            self.coordinator.data[f"{CHARGER_CURRENT_KEY}{suffix}"]
-            * self.coordinator.data[f"{CHARGER_VOLTAGE_KEY}{suffix}"]
-        ) / 10000, 0)
+        value = round(
+            (
+                self.coordinator.data[f"{CHARGER_CURRENT_KEY}{suffix}"]
+                * self.coordinator.data[f"{CHARGER_VOLTAGE_KEY}{suffix}"]
+            )
+            / 10000,
+            0,
+        )
         return cast(StateType, value)
+
 
 class OnchargerTotalPowerSensor(OnchargerSensor):
     """Representation of the Oncharger total power sensor."""
@@ -250,12 +270,16 @@ class OnchargerTotalPowerSensor(OnchargerSensor):
     @property
     def native_value(self) -> StateType:
         """Return the state of the sensor."""
-        value = round((
-            self.coordinator.data[f"{CHARGER_CURRENT_KEY}1"]
-            * self.coordinator.data[f"{CHARGER_VOLTAGE_KEY}1"] +
-            self.coordinator.data[f"{CHARGER_CURRENT_KEY}2"]
-            * self.coordinator.data[f"{CHARGER_VOLTAGE_KEY}2"] +
-            self.coordinator.data[f"{CHARGER_CURRENT_KEY}3"]
-            * self.coordinator.data[f"{CHARGER_VOLTAGE_KEY}3"]
-        ) / 10000, 0)
+        value = round(
+            (
+                self.coordinator.data[f"{CHARGER_CURRENT_KEY}1"]
+                * self.coordinator.data[f"{CHARGER_VOLTAGE_KEY}1"]
+                + self.coordinator.data[f"{CHARGER_CURRENT_KEY}2"]
+                * self.coordinator.data[f"{CHARGER_VOLTAGE_KEY}2"]
+                + self.coordinator.data[f"{CHARGER_CURRENT_KEY}3"]
+                * self.coordinator.data[f"{CHARGER_VOLTAGE_KEY}3"]
+            )
+            / 10000,
+            0,
+        )
         return cast(StateType, value)
