@@ -12,10 +12,14 @@ Tested with:
 <img src="https://github.com/krasnoukhov/homeassistant-oncharger/assets/944286/cf51f9e0-54d9-41ae-809e-9439d65de051" alt="sensors" width="400">
 
 ### Charge your car at the maximum power
+
 * If you have a smart meter that reports current on the phase to a specific entity in HA
 * This entity can be used to have this integration auto-adjust Oncharger current up to a specific threshold
 
 <img src="https://github.com/krasnoukhov/homeassistant-oncharger/assets/944286/a809fe0f-c10d-4d22-a8e2-35469fff9ad9" alt="boost" width="400">
+
+For three-phase charger your entity should represent the maximum current on any of the phases.
+You can use "Combine the state of several sensors" helper for that.
 
 ### Use the UI to set up integration
 

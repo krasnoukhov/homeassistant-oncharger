@@ -8,7 +8,7 @@
           "device_name": "Name for the device in HA"
         },
         "data_description": {
-          "connection_type": "Select connection type. Local requires your Oncharger to be on your home Wi-Fi",
+          "connection_type": "Local requires your Oncharger to be on your home Wi-Fi",
           "device_type": "Single phase or three phase device"
         }
       },
