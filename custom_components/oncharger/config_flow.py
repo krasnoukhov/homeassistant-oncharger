@@ -25,6 +25,7 @@ from .const import (
     CONNECTION_TYPE,
     CHARGER_NAME_KEY,
     DEVICE_NAME,
+    DEVICE_TYPE,
     DOMAIN,
     IP_ADDRESS,
     LOCAL,
@@ -32,6 +33,8 @@ from .const import (
     PHASE_CURRENT_ENTITY,
     PHASE_MAX_LOAD_MIN,
     PHASE_MAX_LOAD,
+    SINGLE_PHASE,
+    THREE_PHASE,
     USERNAME,
 )
 from .oncharger import Oncharger
@@ -60,6 +63,9 @@ LOGIN_FIELDS = {
 USER_SCHEMA = vol.Schema(
     {
         vol.Required(CONNECTION_TYPE, default=LOCAL): vol.In((LOCAL, CLOUD)),
+        vol.Required(DEVICE_TYPE, default=SINGLE_PHASE): vol.In(
+            (SINGLE_PHASE, THREE_PHASE)
+        ),
         vol.Required(DEVICE_NAME, default=DOMAIN.capitalize()): cv.string,
     }
 )
@@ -95,6 +101,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Start the Wallbox config flow."""
         self._device_name = None
+        self._device_type = None
 
     @staticmethod
     @callback
@@ -112,6 +119,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
 
         self._device_name = user_input[DEVICE_NAME]
+        self._device_type = user_input[DEVICE_TYPE]
 
         if user_input[CONNECTION_TYPE] == LOCAL:
             return await self.async_step_local()
@@ -139,6 +147,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_show_form(step_id=step_id, data_schema=data_schema)
 
         user_input[DEVICE_NAME] = self._device_name
+        user_input[DEVICE_TYPE] = self._device_type
 
         errors = {}
 

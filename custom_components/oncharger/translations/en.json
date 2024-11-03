@@ -4,9 +4,13 @@
       "user": {
         "data": {
           "connection_type": "Select connection type",
+          "device_type": "Select charger type",
           "device_name": "Name for the device in HA"
         },
-        "description": "Select connection type. Local requires your Oncharger to be on your home Wi-Fi"
+        "data_description": {
+          "connection_type": "Local requires your Oncharger to be on your home Wi-Fi",
+          "device_type": "Single phase or three phase device"
+        }
       },
       "local": {
         "data": {
@@ -85,6 +89,9 @@
       },
       "power": {
         "name": "Power"
+      },
+      "total_power": {
+        "name": "Total Power"
       }
     },
     "lock": {

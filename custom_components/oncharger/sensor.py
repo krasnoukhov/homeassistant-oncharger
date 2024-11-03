@@ -37,10 +37,15 @@ from .const import (
     CHARGER_TOTAL_ENERGY_KEY,
     CHARGER_VOLTAGE_KEY,
     ChargerState,
+    DEVICE_TYPE,
     DOMAIN,
+    THREE_PHASE,
 )
 from .coordinator import OnchargerCoordinator
 from .entity import OnchargerEntity
+
+POWER_KEY = "power"
+TOTAL_POWER_KEY = "total_power"
 
 
 @dataclass
@@ -50,7 +55,42 @@ class OnchargerSensorEntityDescription(SensorEntityDescription):
     normalize: Callable[[Any], Any] | None = None
 
 
-POWER_KEY = "power"
+def phase_descriptions(index="") -> dict[str, SensorEntityDescription]:
+    """Generate entity descriptions for a given phase"""
+    return {
+        f"{CHARGER_CURRENT_KEY}{index}": OnchargerSensorEntityDescription(
+            key=f"{CHARGER_CURRENT_KEY}{index}",
+            translation_key="current",
+            device_class=SensorDeviceClass.CURRENT,
+            state_class=SensorStateClass.MEASUREMENT,
+            native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+            suggested_display_precision=2,
+            normalize=lambda value: round(value / 1000, 2),
+        ),
+        f"{CHARGER_VOLTAGE_KEY}{index}": OnchargerSensorEntityDescription(
+            key=f"{CHARGER_VOLTAGE_KEY}{index}",
+            translation_key="voltage",
+            device_class=SensorDeviceClass.VOLTAGE,
+            state_class=SensorStateClass.MEASUREMENT,
+            native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+            suggested_display_precision=2,
+            normalize=lambda value: round(value / 10, 2),
+        ),
+    }
+
+
+def phase_power_description(index="") -> SensorEntityDescription:
+    """Generate power entity descriptions for a given phase"""
+    return OnchargerSensorEntityDescription(
+        key=f"{POWER_KEY}{index}",
+        translation_key=POWER_KEY,
+        icon="mdi:ev-plug-type2",
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        suggested_display_precision=0,
+    )
+
 
 SESSION_ENERGY_DESCRIPTION = OnchargerSensorEntityDescription(
     key=CHARGER_SESSION_ENERGY_KEY,
@@ -59,7 +99,7 @@ SESSION_ENERGY_DESCRIPTION = OnchargerSensorEntityDescription(
     state_class=SensorStateClass.TOTAL,
     native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
     suggested_display_precision=2,
-    normalize=lambda value: value / (36 * 100000),
+    normalize=lambda value: round(value / (36 * 100000), 2),
 )
 
 TOTAL_ENERGY_DESCRIPTION = OnchargerSensorEntityDescription(
@@ -69,12 +109,12 @@ TOTAL_ENERGY_DESCRIPTION = OnchargerSensorEntityDescription(
     state_class=SensorStateClass.TOTAL_INCREASING,
     native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
     suggested_display_precision=2,
-    normalize=lambda value: value / 1000,
+    normalize=lambda value: round(value / 1000, 2),
 )
 
-POWER_DESCRIPTION = OnchargerSensorEntityDescription(
-    key=POWER_KEY,
-    translation_key=POWER_KEY,
+TOTAL_POWER_DESCRIPTION = OnchargerSensorEntityDescription(
+    key=TOTAL_POWER_KEY,
+    translation_key=TOTAL_POWER_KEY,
     icon="mdi:ev-plug-type2",
     device_class=SensorDeviceClass.POWER,
     state_class=SensorStateClass.MEASUREMENT,
@@ -89,15 +129,6 @@ ENTITY_DESCRIPTIONS: dict[str, OnchargerSensorEntityDescription] = {
         icon="mdi:ev-station",
         normalize=lambda value: CHARGER_STATE.get(value, ChargerState.ERROR),
     ),
-    CHARGER_CURRENT_KEY: OnchargerSensorEntityDescription(
-        key=CHARGER_CURRENT_KEY,
-        translation_key="current",
-        device_class=SensorDeviceClass.CURRENT,
-        state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
-        suggested_display_precision=2,
-        normalize=lambda value: value / 1000,
-    ),
     CHARGER_SESSION_ENERGY_KEY: SESSION_ENERGY_DESCRIPTION,
     CHARGER_DEVICE_TEMPERATURE_KEY: OnchargerSensorEntityDescription(
         key=CHARGER_DEVICE_TEMPERATURE_KEY,
@@ -106,7 +137,7 @@ ENTITY_DESCRIPTIONS: dict[str, OnchargerSensorEntityDescription] = {
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         suggested_display_precision=2,
-        normalize=lambda value: value / 10,
+        normalize=lambda value: round(value / 10, 2),
     ),
     CHARGER_SESSION_ELAPSED_KEY: OnchargerSensorEntityDescription(
         key=CHARGER_SESSION_ELAPSED_KEY,
@@ -116,15 +147,16 @@ ENTITY_DESCRIPTIONS: dict[str, OnchargerSensorEntityDescription] = {
         native_unit_of_measurement=UnitOfTime.SECONDS,
         normalize=lambda value: value,
     ),
-    CHARGER_VOLTAGE_KEY: OnchargerSensorEntityDescription(
-        key=CHARGER_VOLTAGE_KEY,
-        translation_key="voltage",
-        device_class=SensorDeviceClass.VOLTAGE,
-        state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
-        suggested_display_precision=2,
-        normalize=lambda value: value / 10,
-    ),
+}
+
+ENTITY_DESCRIPTIONS_1P: dict[str, OnchargerSensorEntityDescription] = {
+    **phase_descriptions(""),
+}
+
+ENTITY_DESCRIPTIONS_3P: dict[str, OnchargerSensorEntityDescription] = {
+    **phase_descriptions("1"),
+    **phase_descriptions("2"),
+    **phase_descriptions("3"),
 }
 
 
@@ -141,12 +173,49 @@ async def async_setup_entry(
             if (description := ENTITY_DESCRIPTIONS.get(ent))
         ]
     )
+
     async_add_entities(
         [OnchargerTotalEnergySensor(hass, coordinator, entry, TOTAL_ENERGY_DESCRIPTION)]
     )
-    async_add_entities(
-        [OnchargerPowerSensor(hass, coordinator, entry, POWER_DESCRIPTION)]
-    )
+
+    if entry.data.get(DEVICE_TYPE, None) == THREE_PHASE:
+        async_add_entities(
+            [
+                OnchargerSensor(hass, coordinator, entry, description)
+                for ent in coordinator.data
+                if (description := ENTITY_DESCRIPTIONS_3P.get(ent))
+            ]
+        )
+        async_add_entities(
+            [
+                OnchargerPowerSensor(
+                    hass, coordinator, entry, phase_power_description(phase)
+                )
+                for phase in ["1", "2", "3"]
+            ]
+        )
+        async_add_entities(
+            [
+                OnchargerTotalPowerSensor(
+                    hass, coordinator, entry, TOTAL_POWER_DESCRIPTION
+                )
+            ]
+        )
+    else:
+        async_add_entities(
+            [
+                OnchargerSensor(hass, coordinator, entry, description)
+                for ent in coordinator.data
+                if (description := ENTITY_DESCRIPTIONS_1P.get(ent))
+            ]
+        )
+        async_add_entities(
+            [
+                OnchargerPowerSensor(
+                    hass, coordinator, entry, phase_power_description("")
+                )
+            ]
+        )
 
 
 class OnchargerSensor(OnchargerEntity, SensorEntity):
@@ -182,8 +251,35 @@ class OnchargerPowerSensor(OnchargerSensor):
     @property
     def native_value(self) -> StateType:
         """Return the state of the sensor."""
-        value = (
-            self.coordinator.data[CHARGER_CURRENT_KEY]
-            * self.coordinator.data[CHARGER_VOLTAGE_KEY]
-        ) / 10000
+        key = self.entity_description.key
+        suffix = f"{key[-1]}" if key[-1] in ["1", "2", "3"] else ""
+        value = round(
+            (
+                self.coordinator.data[f"{CHARGER_CURRENT_KEY}{suffix}"]
+                * self.coordinator.data[f"{CHARGER_VOLTAGE_KEY}{suffix}"]
+            )
+            / 10000,
+            0,
+        )
+        return cast(StateType, value)
+
+
+class OnchargerTotalPowerSensor(OnchargerSensor):
+    """Representation of the Oncharger total power sensor."""
+
+    @property
+    def native_value(self) -> StateType:
+        """Return the state of the sensor."""
+        value = round(
+            (
+                self.coordinator.data[f"{CHARGER_CURRENT_KEY}1"]
+                * self.coordinator.data[f"{CHARGER_VOLTAGE_KEY}1"]
+                + self.coordinator.data[f"{CHARGER_CURRENT_KEY}2"]
+                * self.coordinator.data[f"{CHARGER_VOLTAGE_KEY}2"]
+                + self.coordinator.data[f"{CHARGER_CURRENT_KEY}3"]
+                * self.coordinator.data[f"{CHARGER_VOLTAGE_KEY}3"]
+            )
+            / 10000,
+            0,
+        )
         return cast(StateType, value)

@@ -12,12 +12,15 @@ ATTR_ENTITY = "entity"
 CLOUD = "cloud"
 CONNECTION_TYPE = "connection_type"
 DEVICE_NAME = "device_name"
+DEVICE_TYPE = "device_type"
 IP_ADDRESS = CONF_IP_ADDRESS
 LOCAL = "local"
 PASSWORD = "password"
 PHASE_CURRENT_ENTITY = "phase_current_entity"
 PHASE_MAX_LOAD_MIN = 10
 PHASE_MAX_LOAD = "phase_max_load"
+SINGLE_PHASE = "single_phase"
+THREE_PHASE = "three_phase"
 USERNAME = "username"
 
 CHARGER_CURRENT_VERSION_KEY = "ver"
