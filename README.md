@@ -4,6 +4,7 @@ The Oncharger integration pulls data from either local network or Oncharger clou
 
 Tested with:
 * [32A one-phase Wi-Fi charger](https://oncharger.com.ua/ua/p1422951216-oncharger-gbt-32a.html)
+* [32A three-phase Wi-Fi charger](https://oncharger.com.ua/ua/p1044770084-zaryadnaya-stantsiya-dlya.html)
 
 ## Highlights
 
