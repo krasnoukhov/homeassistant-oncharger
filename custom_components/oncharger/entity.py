@@ -13,6 +13,7 @@ from .const import (
     CHARGER_NAME_KEY,
     DEVICE_NAME,
     DOMAIN,
+    IP_ADDRESS,
 )
 from .coordinator import OnchargerCoordinator
 
@@ -59,6 +60,7 @@ class OnchargerEntity(CoordinatorEntity[OnchargerCoordinator]):
             manufacturer="Oncharger",
             model="Wi-Fi",
             sw_version=self.coordinator.data[CHARGER_CURRENT_VERSION_KEY],
+            configuration_url=f"http://{self._entry.data[IP_ADDRESS]}",
         )
 
     @property
