@@ -13,9 +13,9 @@ from homeassistant.const import (
     STATE_UNKNOWN,
     ATTR_UNIT_OF_MEASUREMENT,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, Event, EventStateChangedData
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_state_change
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.util.unit_conversion import ElectricCurrentConverter
 
 from .const import (
@@ -106,7 +106,7 @@ class OnchargerSwitch(OnchargerEntity, SwitchEntity):
 
         async def update_listener(_hass, _entry):
             if self.available and self.is_on:
-                await self._async_trigger_phase_current_changed()
+                await self._async_phase_current_changed_update()
 
         self._entry.async_on_unload(self._entry.add_update_listener(update_listener))
         await update_listener(self.hass, self._entry)
@@ -114,20 +114,23 @@ class OnchargerSwitch(OnchargerEntity, SwitchEntity):
         if not self.phase_current_entity_id:
             return
 
-        async_track_state_change(
+        async_track_state_change_event(
             self.hass,
             self.phase_current_entity_id,
-            self._async_phase_current_changed,
+            self._async_phase_current_changed_event,
         )
 
-    async def _async_trigger_phase_current_changed(self):
+    async def _async_phase_current_changed_update(self):
         await self._async_phase_current_changed(
-            self.phase_current_entity_id,
-            None,
-            self.hass.states.get(self.phase_current_entity_id),
+            self.hass.states.get(self.phase_current_entity_id)
         )
 
-    async def _async_phase_current_changed(self, _entity_id, _old_state, new_state):
+    async def _async_phase_current_changed_event(
+        self, event: Event[EventStateChangedData]
+    ):
+        await self._async_phase_current_changed(event.data["new_state"])
+
+    async def _async_phase_current_changed(self, new_state):
         """Handle phase current changes."""
 
         if not self.available or not self.is_on:
