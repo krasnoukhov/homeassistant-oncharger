@@ -11,13 +11,13 @@ import requests
 from .const import (
     HTTP_TIMEOUT,
     IP_ADDRESS,
-    USERNAME,
     PASSWORD,
+    URL_BASE,
+    USERNAME,
 )
 
-
 _LOGGER = logging.getLogger(__name__)
-API_BASE = "https://my.oncharger.com/api"
+API_BASE = f"{URL_BASE}/api"
 
 
 class Oncharger:

@@ -14,6 +14,7 @@ from .const import (
     DEVICE_NAME,
     DOMAIN,
     IP_ADDRESS,
+    URL_BASE,
 )
 from .coordinator import OnchargerCoordinator
 
@@ -48,6 +49,12 @@ class OnchargerEntity(CoordinatorEntity[OnchargerCoordinator]):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information about this Oncharger device."""
+        configuration_url = (
+            f"http://{self._entry.data[IP_ADDRESS]}"
+            if self._entry.data.get(IP_ADDRESS)
+            else f"{URL_BASE}/{self.coordinator.data[CHARGER_NAME_KEY]}"
+        )
+
         return DeviceInfo(
             identifiers={
                 (
@@ -60,7 +67,7 @@ class OnchargerEntity(CoordinatorEntity[OnchargerCoordinator]):
             manufacturer="Oncharger",
             model="Wi-Fi",
             sw_version=self.coordinator.data[CHARGER_CURRENT_VERSION_KEY],
-            configuration_url=f"http://{self._entry.data[IP_ADDRESS]}",
+            configuration_url=configuration_url,
         )
 
     @property
