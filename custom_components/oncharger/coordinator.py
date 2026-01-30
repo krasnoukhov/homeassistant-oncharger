@@ -13,7 +13,8 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .oncharger import Forbidden, Oncharger
 from .const import (
     DOMAIN,
-    UPDATE_INTERVAL,
+    CLOUD_UPDATE_INTERVAL,
+    LOCAL_UPDATE_INTERVAL,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,11 +27,17 @@ class OnchargerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Initialize."""
         self._oncharger = oncharger
 
+        interval = (
+            LOCAL_UPDATE_INTERVAL
+            if self._oncharger._ip_address
+            else CLOUD_UPDATE_INTERVAL
+        )
+
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(seconds=UPDATE_INTERVAL),
+            update_interval=timedelta(seconds=interval),
         )
 
     def _validate(self) -> None:

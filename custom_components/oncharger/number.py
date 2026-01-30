@@ -26,7 +26,6 @@ from .const import (
 from .coordinator import OnchargerCoordinator
 from .entity import OnchargerEntity
 
-
 ENTITY_DESCRIPTIONS: dict[str, NumberEntityDescription] = {
     CHARGER_MAX_CHARGING_CURRENT_KEY: NumberEntityDescription(
         key=CHARGER_MAX_CHARGING_CURRENT_KEY,
