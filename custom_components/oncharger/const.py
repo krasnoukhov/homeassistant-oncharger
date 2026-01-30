@@ -5,7 +5,8 @@ from homeassistant.const import CONF_IP_ADDRESS
 
 DOMAIN = "oncharger"
 HTTP_TIMEOUT = 5
-UPDATE_INTERVAL = 30
+CLOUD_UPDATE_INTERVAL = 30
+LOCAL_UPDATE_INTERVAL = 5
 URL_BASE = "https://my.oncharger.com"
 
 ATTR_ENTITY = "entity"
