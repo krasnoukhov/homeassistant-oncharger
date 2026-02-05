@@ -6,7 +6,7 @@ import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.const import Platform
 
 from .oncharger import Oncharger
@@ -37,6 +37,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     except InvalidAuth as invalid_auth_error:
         raise ConfigEntryAuthFailed from invalid_auth_error
+
+    except ConnectionError as connection_error:
+        raise ConfigEntryNotReady from connection_error
 
     await coordinator.async_config_entry_first_refresh()
 
