@@ -40,9 +40,9 @@ class OnchargerEntity(CoordinatorEntity[OnchargerCoordinator]):
 
         self._attr_unique_id = "-".join(
             [
-                coordinator.data[CHARGER_NAME_KEY],
-                entry.data[DEVICE_NAME],
-                description.key,
+                str(coordinator.data[CHARGER_NAME_KEY]),
+                str(entry.data[DEVICE_NAME]),
+                str(description.key),
             ]
         )
 
@@ -59,8 +59,8 @@ class OnchargerEntity(CoordinatorEntity[OnchargerCoordinator]):
             identifiers={
                 (
                     DOMAIN,
-                    self.coordinator.data[CHARGER_NAME_KEY],
-                    self._entry.data[DEVICE_NAME],
+                    str(self.coordinator.data[CHARGER_NAME_KEY]),
+                    str(self._entry.data[DEVICE_NAME]),
                 )
             },
             name=self._entry.data[DEVICE_NAME],
