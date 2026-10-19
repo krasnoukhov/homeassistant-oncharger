@@ -56,7 +56,8 @@ class OnchargerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             config: dict[str, Any] = self._oncharger.get_config()
             status: dict[str, Any] = self._oncharger.get_status()
-            data = config | status
+            # NOTE: cloud status may return null for keys set in config (e.g. pilot)
+            data = config | {k: v for k, v in status.items() if v is not None}
 
             # NOTE: cloud is amp, local is amp1
             if data.get("amp") is None:
