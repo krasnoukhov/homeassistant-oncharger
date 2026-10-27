@@ -9,7 +9,7 @@
         },
         "data_description": {
           "connection_type": "Local requires your Oncharger to be on your home Wi-Fi",
-          "device_type": "Single phase or three phase device"
+          "device_type": "Single phase, three phase or DC charger"
         }
       },
       "local": {
@@ -63,6 +63,12 @@
       },
       "max_phase_current": {
         "name": "Maximum total phase current"
+      },
+      "power_limit": {
+        "name": "Power limit"
+      },
+      "charge_limit": {
+        "name": "Charge limit"
       }
     },
     "sensor": {
@@ -92,16 +98,58 @@
       },
       "total_power": {
         "name": "Total Power"
+      },
+      "output_power": {
+        "name": "Output power"
+      },
+      "output_current": {
+        "name": "Output current"
+      },
+      "output_voltage": {
+        "name": "Output voltage"
+      },
+      "requested_current": {
+        "name": "Requested current"
+      },
+      "target_voltage": {
+        "name": "Target voltage"
+      },
+      "soc": {
+        "name": "EV battery"
+      },
+      "protocol": {
+        "name": "Protocol",
+        "state": {
+          "none": "None",
+          "gbt": "GBT",
+          "ccs": "CCS"
+        }
       }
     },
     "lock": {
       "lock": {
         "name": "Lock"
+      },
+      "ccs_lock": {
+        "name": "CCS lock"
+      },
+      "gbt_lock": {
+        "name": "GBT lock"
       }
     },
     "switch": {
       "boost": {
         "name": "Boost"
+      }
+    },
+    "select": {
+      "v2g_mode": {
+        "name": "Operating mode",
+        "state": {
+          "charger": "Charger",
+          "on_grid": "On-grid inverter V2G",
+          "off_grid": "Off-grid inverter V2H"
+        }
       }
     }
   }

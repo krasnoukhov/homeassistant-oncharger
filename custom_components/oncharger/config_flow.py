@@ -24,6 +24,7 @@ from .const import (
     CLOUD,
     CONNECTION_TYPE,
     CHARGER_NAME_KEY,
+    DC_CHARGER,
     DEVICE_NAME,
     DEVICE_TYPE,
     DOMAIN,
@@ -64,7 +65,7 @@ USER_SCHEMA = vol.Schema(
     {
         vol.Required(CONNECTION_TYPE, default=LOCAL): vol.In((LOCAL, CLOUD)),
         vol.Required(DEVICE_TYPE, default=SINGLE_PHASE): vol.In(
-            (SINGLE_PHASE, THREE_PHASE)
+            (SINGLE_PHASE, THREE_PHASE, DC_CHARGER)
         ),
         vol.Required(DEVICE_NAME, default=DOMAIN.capitalize()): cv.string,
     }

@@ -22,6 +22,10 @@ from .const import (
     CHARGER_BOOST_NATIVE_KEY,
     CHARGER_BOOST_TYPE_KEY,
     CHARGER_MAX_CHARGING_CURRENT_KEY,
+    CHARGER_POWER_LIMIT_KEY,
+    CHARGER_VOLTAGE_KEY,
+    DC_CHARGER,
+    DEVICE_TYPE,
     DOMAIN,
     IP_ADDRESS,
     PHASE_CURRENT_ENTITY,
@@ -75,6 +79,23 @@ class OnchargerSwitch(OnchargerEntity, SwitchEntity):
             and self.phase_current_entity_id
             and self.coordinator.data[CHARGER_BOOST_NATIVE_KEY] == 0
         )
+
+    @property
+    def watts_per_amp(self) -> float:
+        """Return DC output power per amp of grid current, 95% efficiency."""
+        data = self.coordinator.data
+        volts = [data.get(f"{CHARGER_VOLTAGE_KEY}{i}", 0) / 10 for i in "123"]
+        # some chargers report line voltage (about 400 V), some none (then 220 V)
+        volts = [v / math.sqrt(3) if v > 300 else v for v in volts]
+        return (sum(volts) or 3 * 220) * 0.95
+
+    @property
+    def charging_current(self) -> float:
+        """Return the charging current, per phase on DC chargers."""
+        if self._entry.data.get(DEVICE_TYPE) == DC_CHARGER:
+            power = self.coordinator.data[CHARGER_POWER_LIMIT_KEY]
+            return round(power / self.watts_per_amp)
+        return float(self.coordinator.data[CHARGER_MAX_CHARGING_CURRENT_KEY])
 
     @property
     def is_on(self) -> bool:
@@ -158,12 +179,13 @@ class OnchargerSwitch(OnchargerEntity, SwitchEntity):
             )
 
         available_current = self._entry.options[PHASE_MAX_LOAD] - math.ceil(current)
-        if available_current != float(
-            self.coordinator.data[CHARGER_MAX_CHARGING_CURRENT_KEY]
-        ):
+        if available_current != self.charging_current:
             await self._async_set_charging_current(available_current)
 
     async def _async_set_charging_current(self, value: float) -> None:
         """Set the charging current."""
         _LOGGER.debug(f"Oncharger boost setting current: {value}")
+        if self._entry.data.get(DEVICE_TYPE) == DC_CHARGER:
+            watt = max(1000, round(value * self.watts_per_amp))
+            return await self.coordinator.async_set_param("power_set_watt", watt)
         await self.coordinator.async_set_charging_current(value)

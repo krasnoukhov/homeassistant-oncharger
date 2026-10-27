@@ -22,6 +22,7 @@ from homeassistant.const import (
     UnitOfTime,
     UnitOfElectricPotential,
     UnitOfPower,
+    PERCENTAGE,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -30,13 +31,22 @@ from homeassistant.helpers.typing import StateType
 from .const import (
     CHARGER_CURRENT_KEY,
     CHARGER_DEVICE_TEMPERATURE_KEY,
+    CHARGER_OUTPUT_CURRENT_KEY,
+    CHARGER_OUTPUT_POWER_KEY,
+    CHARGER_OUTPUT_VOLTAGE_KEY,
+    CHARGER_PROTOCOL_KEY,
+    CHARGER_PROTOCOL,
+    CHARGER_REQUESTED_CURRENT_KEY,
     CHARGER_SESSION_ELAPSED_KEY,
     CHARGER_SESSION_ENERGY_KEY,
+    CHARGER_SOC_KEY,
     CHARGER_STATE_KEY,
     CHARGER_STATE,
+    CHARGER_TARGET_VOLTAGE_KEY,
     CHARGER_TOTAL_ENERGY_KEY,
     CHARGER_VOLTAGE_KEY,
     ChargerState,
+    DC_CHARGER,
     DEVICE_TYPE,
     DOMAIN,
     THREE_PHASE,
@@ -52,7 +62,7 @@ TOTAL_POWER_KEY = "total_power"
 class OnchargerSensorEntityDescription(SensorEntityDescription):
     """Describes Oncharger sensor entity."""
 
-    normalize: Callable[[Any], Any] | None = None
+    normalize: Callable[[Any], Any] = lambda value: value
 
 
 def phase_descriptions(index="") -> dict[str, SensorEntityDescription]:
@@ -159,6 +169,63 @@ ENTITY_DESCRIPTIONS_3P: dict[str, OnchargerSensorEntityDescription] = {
     **phase_descriptions("3"),
 }
 
+ENTITY_DESCRIPTIONS_DC: dict[str, OnchargerSensorEntityDescription] = {
+    CHARGER_TOTAL_ENERGY_KEY: TOTAL_ENERGY_DESCRIPTION,
+    CHARGER_OUTPUT_POWER_KEY: OnchargerSensorEntityDescription(
+        key=CHARGER_OUTPUT_POWER_KEY,
+        translation_key="output_power",
+        icon="mdi:ev-plug-ccs2",
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+    ),
+    CHARGER_OUTPUT_CURRENT_KEY: OnchargerSensorEntityDescription(
+        key=CHARGER_OUTPUT_CURRENT_KEY,
+        translation_key="output_current",
+        device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+    ),
+    CHARGER_OUTPUT_VOLTAGE_KEY: OnchargerSensorEntityDescription(
+        key=CHARGER_OUTPUT_VOLTAGE_KEY,
+        translation_key="output_voltage",
+        device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+    ),
+    CHARGER_REQUESTED_CURRENT_KEY: OnchargerSensorEntityDescription(
+        key=CHARGER_REQUESTED_CURRENT_KEY,
+        translation_key="requested_current",
+        device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+    ),
+    CHARGER_TARGET_VOLTAGE_KEY: OnchargerSensorEntityDescription(
+        key=CHARGER_TARGET_VOLTAGE_KEY,
+        translation_key="target_voltage",
+        device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+    ),
+    CHARGER_SOC_KEY: OnchargerSensorEntityDescription(
+        key=CHARGER_SOC_KEY,
+        translation_key="soc",
+        device_class=SensorDeviceClass.BATTERY,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=PERCENTAGE,
+        normalize=lambda value: value or None,
+    ),
+    CHARGER_PROTOCOL_KEY: OnchargerSensorEntityDescription(
+        key=CHARGER_PROTOCOL_KEY,
+        translation_key="protocol",
+        icon="mdi:ev-plug-ccs2",
+        device_class=SensorDeviceClass.ENUM,
+        options=list(CHARGER_PROTOCOL.values()),
+        normalize=lambda value: CHARGER_PROTOCOL.get(value),
+    ),
+    **ENTITY_DESCRIPTIONS_3P,
+}
+
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
@@ -173,6 +240,16 @@ async def async_setup_entry(
             if (description := ENTITY_DESCRIPTIONS.get(ent))
         ]
     )
+
+    if entry.data.get(DEVICE_TYPE, None) == DC_CHARGER:
+        async_add_entities(
+            [
+                OnchargerSensor(hass, coordinator, entry, description)
+                for ent in coordinator.data
+                if (description := ENTITY_DESCRIPTIONS_DC.get(ent))
+            ]
+        )
+        return
 
     async_add_entities(
         [OnchargerTotalEnergySensor(hass, coordinator, entry, TOTAL_ENERGY_DESCRIPTION)]

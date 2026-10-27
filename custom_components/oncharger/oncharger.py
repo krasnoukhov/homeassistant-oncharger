@@ -51,10 +51,11 @@ class Oncharger:
                 path="update", query=f"param=maxCurrent&value={charging_current}"
             )
 
-    def set_lock_unlock(self, lock: bool) -> None:
+    def set_lock_unlock(self, lock: bool, conn_id: int = 1) -> None:
         """Set Oncharger lock/unlock."""
         if self._ip_address:
-            self._get_request(path="api", query=f"param=lock&value={str(lock).lower()}")
+            query = f"param=lock&value={str(lock).lower()}&connId={conn_id}"
+            self._get_request(path="api", query=query)
         else:
             self._get_request(
                 path="update", query=f"param=loc&value={str(lock).lower()}"
@@ -72,6 +73,10 @@ class Oncharger:
         else:
             config = f"{conn}|{amp}|{is_total_limit}|{ip}"
             self._get_request(path="update", query=f"param=cb_config&value={config}")
+
+    def set_param(self, param: str, value: int) -> None:
+        """Set Oncharger param."""
+        self._get_request(path="api", query=f"param={param}&value={value}")
 
     @property
     def _api_url(self) -> ParseResult:

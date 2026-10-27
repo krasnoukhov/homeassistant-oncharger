@@ -60,10 +60,10 @@ class OnchargerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             data = config | {k: v for k, v in status.items() if v is not None}
 
             # NOTE: cloud is amp, local is amp1
-            if data.get("amp") is None:
+            if data.get("amp") is None and "amp1" in data:
                 data["amp"] = data["amp1"]
             # NOTE: 3 phase for some reason does not have volt1 but have volt
-            if data.get("volt1") is None:
+            if data.get("volt1") is None and "volt" in data:
                 data["volt1"] = data["volt"]
 
             return data
@@ -90,16 +90,16 @@ class OnchargerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         await self.async_request_refresh()
 
-    def _set_lock_unlock(self, lock: bool) -> None:
+    def _set_lock_unlock(self, lock: bool, conn_id: int = 1) -> None:
         """Set Oncharger to locked or unlocked."""
         try:
-            self._oncharger.set_lock_unlock(lock)
+            self._oncharger.set_lock_unlock(lock, conn_id)
         except Forbidden as forbidden_error:
             raise InvalidAuth from forbidden_error
 
-    async def async_set_lock_unlock(self, lock: bool) -> None:
+    async def async_set_lock_unlock(self, lock: bool, conn_id: int = 1) -> None:
         """Set Oncharger to locked or unlocked."""
-        await self.hass.async_add_executor_job(self._set_lock_unlock, lock)
+        await self.hass.async_add_executor_job(self._set_lock_unlock, lock, conn_id)
         await self.async_request_refresh()
 
     def _set_boost_config(self, *args) -> None:
@@ -112,6 +112,18 @@ class OnchargerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def async_set_boost_config(self, *args) -> None:
         """Set Oncharger boost config."""
         await self.hass.async_add_executor_job(self._set_boost_config, *args)
+        await self.async_request_refresh()
+
+    def _set_param(self, param: str, value: int) -> None:
+        """Set Oncharger param."""
+        try:
+            self._oncharger.set_param(param, value)
+        except Forbidden as forbidden_error:
+            raise InvalidAuth from forbidden_error
+
+    async def async_set_param(self, param: str, value: int) -> None:
+        """Set Oncharger param."""
+        await self.hass.async_add_executor_job(self._set_param, param, value)
         await self.async_request_refresh()
 
 

@@ -13,7 +13,7 @@ from .oncharger import Oncharger
 from .coordinator import InvalidAuth, OnchargerCoordinator
 from .const import DOMAIN
 
-PLATFORMS = [Platform.SENSOR, Platform.NUMBER, Platform.LOCK, Platform.SWITCH]
+PLATFORMS = [Platform.SENSOR, Platform.NUMBER, Platform.LOCK, Platform.SWITCH, Platform.SELECT]
 
 _LOGGER = logging.getLogger(__name__)
 
